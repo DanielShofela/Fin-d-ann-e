@@ -35,6 +35,32 @@ const promiseWithTimeout = <T,>(promise: Promise<T>, timeoutMs = 6000, errorMsg 
   ]);
 };
 
+// Safe LocalStorage helpers to avoid "SecurityError" in restricted environments (like frames/Netlify)
+const safeLocalStorageGet = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch (err) {
+    console.warn("Storage access denied:", err);
+    return null;
+  }
+};
+
+const safeLocalStorageSet = (key: string, value: string): void => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (err) {
+    console.warn("Storage writing denied:", err);
+  }
+};
+
+const safeLocalStorageRemove = (key: string): void => {
+  try {
+    localStorage.removeItem(key);
+  } catch (err) {
+    console.warn("Storage removal denied:", err);
+  }
+};
+
 export default function App() {
   // Application Data States
   const [categories, setCategories] = useState<Category[]>([]);
@@ -44,12 +70,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [isStaticMode, setIsStaticMode] = useState<boolean>(() => {
-    return localStorage.getItem('penta_is_static_mode') === 'true';
+    return safeLocalStorageGet('penta_is_static_mode') === 'true';
   });
 
   // Authentication Token State
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('penta_admin_token');
+    return safeLocalStorageGet('penta_admin_token');
   });
 
   // Navigation Routing States
@@ -167,7 +193,7 @@ export default function App() {
       setProducts(prods);
       setSettings(siteSettings);
       setIsStaticMode(true); // Always keep in static/decentralized Firestore direct mode
-      localStorage.setItem('penta_is_static_mode', 'true');
+      safeLocalStorageSet('penta_is_static_mode', 'true');
     } catch (err: any) {
       console.warn("Erreur de connexion Firebase Firestore. Utilisation de la mémoire locale :", err.message);
       
@@ -249,7 +275,7 @@ export default function App() {
     if (cleanPass === '7056Amapiano20!!' || cleanPass.toLowerCase() === '7056amapiano20!!') {
       const fakeToken = 'Token-adminpenta2026';
       setToken(fakeToken);
-      localStorage.setItem('penta_admin_token', fakeToken);
+      safeLocalStorageSet('penta_admin_token', fakeToken);
       return true;
     }
     return false;
@@ -272,7 +298,7 @@ export default function App() {
 
   const handleLogout = () => {
     setToken(null);
-    localStorage.removeItem('penta_admin_token');
+    safeLocalStorageRemove('penta_admin_token');
     setCurrentView('homepage');
     setViewHistory([{ view: 'homepage' }]);
   };
