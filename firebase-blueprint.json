@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "Category": {
+      "title": "Category",
+      "description": "Category representing grouping of kits (e.g. Bronze, Argent, Or, Platine)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "startingAmount": { "type": "string" },
+        "image": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "title", "startingAmount", "image", "order"]
+    },
+    "Kit": {
+      "title": "Kit",
+      "description": "A festive kit containing food, electronics or comfort items details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "name": { "type": "string" },
+        "dailyAmount": { "type": "string" },
+        "totalValue": { "type": "string" },
+        "images": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "products": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "benefits": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "deliveryInfo": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "categoryId", "name", "dailyAmount", "totalValue", "images", "products", "benefits", "deliveryInfo", "order"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global customization of header, footer, hero, contacts and text on the site",
+      "type": "object",
+      "properties": {
+        "headerBrand": { "type": "string" },
+        "headerSubtitle": { "type": "string" },
+        "heroImage": { "type": "string" },
+        "heroCampaignBadge": { "type": "string" },
+        "heroHeadline": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "heroPromoBrand": { "type": "string" },
+        "heroPromoTitle": { "type": "string" },
+        "heroPromoDesc": { "type": "string" },
+        "heroPromoImage": { "type": "string" },
+        "heroCtaText": { "type": "string" },
+        "infoTitle": { "type": "string" },
+        "infoDescription": { "type": "string" },
+        "faqTitle": { "type": "string" },
+        "faqQ1": { "type": "string" },
+        "faqA1": { "type": "string" },
+        "faqQ2": { "type": "string" },
+        "faqA2": { "type": "string" },
+        "footerBrand": { "type": "string" },
+        "footerSubtitle": { "type": "string" },
+        "footerDesc": { "type": "string" },
+        "footerAddress": { "type": "string" },
+        "phoneOrange": { "type": "string" },
+        "phoneMoov": { "type": "string" },
+        "phoneMtn": { "type": "string" },
+        "whatsappHotline": { "type": "string" },
+        "momoWaveName": { "type": "string" },
+        "momoWaveNum": { "type": "string" },
+        "momoOrangeName": { "type": "string" },
+        "momoOrangeNum": { "type": "string" },
+        "momoMtnName": { "type": "string" },
+        "momoMtnNum": { "type": "string" },
+        "momoMoovName": { "type": "string" },
+        "momoMoovNum": { "type": "string" }
+      }
+    },
+    "CatalogProduct": {
+      "title": "CatalogProduct",
+      "description": "A single product/item that constitutes the kits. These are grouped by category and subcategory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "required": ["id", "category", "name"]
+    }
+  },
+  "firestore": {
+    "categories": {
+      "schema": "Category",
+      "description": "List of categories"
+    },
+    "kits": {
+      "schema": "Kit",
+      "description": "List of kits belonging to categories"
+    },
+    "settings": {
+      "schema": "SiteSettings",
+      "description": "Global custom theme, text, configurations and info displays for the site"
+    },
+    "products": {
+      "schema": "CatalogProduct",
+      "description": "List of available items/products catalog to select when building kits"
+    }
+  }
+}
