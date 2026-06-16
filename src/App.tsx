@@ -614,41 +614,57 @@ export default function App() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-5">
-                      {kits.slice(0, 3).map((kit) => {
-                        const associatedCat = categories.find(c => c.id === kit.categoryId);
-                        return (
-                          <div
-                            key={kit.id}
-                            onClick={() => handleNavigate('kit-details', kit.categoryId, kit.id)}
-                            className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 p-3 cursor-pointer"
-                          >
-                            <img
-                              src={kit.images && kit.images[0] ? kit.images[0] : 'https://picsum.photos/seed/elite-kit/200/200'}
-                              alt={kit.name}
-                              className="w-18 h-18 object-cover rounded-xl shrink-0 border border-slate-50 bg-slate-50"
-                              referrerPolicy="no-referrer"
-                            />
-                            
-                            <div className="min-w-0 flex-1">
-                              {associatedCat && (
-                                <span className="text-[8px] font-extrabold bg-[#0D47FF]/10 text-[#0D47FF] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                                  Gamme {associatedCat.title}
-                                </span>
-                              )}
-                              <h3 className="font-display font-black text-sm text-slate-900 mt-1 truncate">
-                                {kit.name}
-                              </h3>
-                              <p className="text-[10px] font-bold text-slate-400 font-mono tracking-wider uppercase mt-1">
-                                {kit.dailyAmount} <span className="font-normal font-sans lowercase">/ jour</span>
-                              </p>
-                            </div>
+                      {(() => {
+                        let featured: Kit[] = [];
+                        if (settings?.featuredKitIds && settings.featuredKitIds.length > 0) {
+                          settings.featuredKitIds.forEach(id => {
+                            const found = kits.find(k => k.id === id);
+                            if (found) {
+                              featured.push(found);
+                            }
+                          });
+                        }
+                        if (featured.length < 3) {
+                          const remaining = kits.filter(k => !featured.some(f => f.id === k.id));
+                          featured = [...featured, ...remaining.slice(0, 3 - featured.length)];
+                        }
+                        featured = featured.slice(0, 3);
+                        return featured.map((kit) => {
+                          const associatedCat = categories.find(c => c.id === kit.categoryId);
+                          return (
+                            <div
+                              key={kit.id}
+                              onClick={() => handleNavigate('kit-details', kit.categoryId, kit.id)}
+                              className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 p-3 cursor-pointer"
+                            >
+                              <img
+                                src={kit.images && kit.images[0] ? kit.images[0] : 'https://picsum.photos/seed/elite-kit/200/200'}
+                                alt={kit.name}
+                                className="w-18 h-18 object-cover rounded-xl shrink-0 border border-slate-50 bg-slate-50"
+                                referrerPolicy="no-referrer"
+                              />
+                              
+                              <div className="min-w-0 flex-1">
+                                {associatedCat && (
+                                  <span className="text-[8px] font-extrabold bg-[#0D47FF]/10 text-[#0D47FF] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                                    Gamme {associatedCat.title}
+                                  </span>
+                                )}
+                                <h3 className="font-display font-black text-sm text-slate-900 mt-1 truncate">
+                                  {kit.name}
+                                </h3>
+                                <p className="text-[10px] font-bold text-slate-400 font-mono tracking-wider uppercase mt-1">
+                                  {kit.dailyAmount} <span className="font-normal font-sans lowercase">/ jour</span>
+                                </p>
+                              </div>
 
-                            <div className="w-8 h-8 rounded-full bg-[#0D47FF]/10 flex items-center justify-center shrink-0">
-                              <Eye className="w-4 h-4 text-[#0D47FF]" />
+                              <div className="w-8 h-8 rounded-full bg-[#0D47FF]/10 flex items-center justify-center shrink-0">
+                                <Eye className="w-4 h-4 text-[#0D47FF]" />
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
 

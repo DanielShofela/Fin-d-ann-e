@@ -18,6 +18,22 @@ export default function KitDetailsView({ kit, category, products = [], onBack, o
   const kitImages = kit.images && kit.images.length > 0 ? kit.images : ['https://picsum.photos/seed/kit/600/400'];
   const activeImage = kitImages[activeImageIdx] || kitImages[0];
 
+  // Group duplicate products inside the kit
+  const productCounts: { [name: string]: number } = {};
+  const uniqueProducts: string[] = [];
+  (kit.products || []).forEach(prod => {
+    if (!prod) return;
+    const trimmed = prod.trim();
+    if (!trimmed) return;
+    const existing = uniqueProducts.find(o => o.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      productCounts[existing]++;
+    } else {
+      uniqueProducts.push(trimmed);
+      productCounts[trimmed] = 1;
+    }
+  });
+
   return (
     <div className="w-full min-h-screen bg-slate-50 pb-24">
       
@@ -52,11 +68,6 @@ export default function KitDetailsView({ kit, category, products = [], onBack, o
             
             {/* Dark gradient blur at bottom */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-            
-            {/* Top Indicator tags */}
-            <span className="absolute top-3 left-3 bg-[#0D47FF] text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg tracking-wider border border-blue-500/20 shadow-sm">
-              Authentique Penta Gad
-            </span>
           </div>
 
           {/* Thumbnails list if there are multiple images */}
@@ -98,10 +109,11 @@ export default function KitDetailsView({ kit, category, products = [], onBack, o
             </h3>
           </div>
 
-          {kit.products && kit.products.length > 0 ? (
+          {uniqueProducts.length > 0 ? (
             <div className="space-y-3">
-              {kit.products.map((prod, idx) => {
+              {uniqueProducts.map((prod, idx) => {
                 const matched = (products || []).find(p => p.name.trim().toLowerCase() === prod.trim().toLowerCase());
+                const count = productCounts[prod] || 1;
                 return (
                   <div key={idx} className="flex items-center gap-3 bg-slate-50/50 hover:bg-blue-50/20 p-2.5 rounded-xl border border-slate-100/50 transition-colors">
                     {/* Image thumbnail or number bubble */}
@@ -115,11 +127,18 @@ export default function KitDetailsView({ kit, category, products = [], onBack, o
                       </div>
                     )}
                     
-                    <div className="min-w-0 flex-1">
-                      <span className="text-xs text-slate-800 font-semibold leading-tight block">{prod}</span>
-                      {matched?.subcategory && (
-                        <span className="text-[9px] text-slate-400 font-mono font-medium tracking-wide block mt-0.5 uppercase">
-                          {matched.category} • {matched.subcategory}
+                    <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                      <div>
+                        <span className="text-xs text-slate-800 font-semibold leading-tight block">{prod}</span>
+                        {matched?.subcategory && (
+                          <span className="text-[9px] text-slate-400 font-mono font-medium tracking-wide block mt-0.5 uppercase">
+                            {matched.category} • {matched.subcategory}
+                          </span>
+                        )}
+                      </div>
+                      {count > 1 && (
+                        <span className="bg-blue-50 text-[#0D47FF] border border-blue-100 text-[10px] font-extrabold px-2 py-0.5 rounded-full font-mono shrink-0">
+                          × {count}
                         </span>
                       )}
                     </div>
@@ -129,29 +148,6 @@ export default function KitDetailsView({ kit, category, products = [], onBack, o
             </div>
           ) : (
             <p className="text-xs text-slate-400">Aucun produit listé dans ce pack.</p>
-          )}
-        </div>
-
-        {/* Benefits Column */}
-        <div className="mt-5 bg-white rounded-2.5xl p-5 shadow-sm border border-slate-100">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 mb-4">
-            <div className="w-1.5 h-4.5 bg-amber-500 rounded-full" />
-            <h3 className="font-display font-extrabold text-[#111] text-sm uppercase tracking-wide">
-              Pourquoi Choisir ce Kit ?
-            </h3>
-          </div>
-
-          {kit.benefits && kit.benefits.length > 0 ? (
-            <div className="space-y-2.5">
-              {kit.benefits.map((benefit, idx) => (
-                <div key={idx} className="flex items-start gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span className="text-xs text-slate-600 leading-[1.4]">{benefit}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-slate-400">Profitez de la fiabilité garantie et du suivi Penta Gad Distribution.</p>
           )}
         </div>
 

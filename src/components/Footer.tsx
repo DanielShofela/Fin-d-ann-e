@@ -13,33 +13,6 @@ export default function Footer({ whatsappNumber = "+2250102030405", settings, on
     <footer className="w-full bg-slate-900 text-slate-300 py-12 px-6 border-t border-slate-800">
       <div className="max-w-md mx-auto space-y-8">
         
-        {/* Value Prop Columns */}
-        <div className="grid grid-cols-2 gap-4 pb-8 border-b border-slate-800">
-          <div className="flex gap-2.5">
-            <Truck className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-            <div className="flex flex-col">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-100">
-                Livraison de Fête
-              </span>
-              <p className="text-[10px] text-slate-400 mt-1 leading-[1.3]">
-                Expéditions sécurisées gratuites à domicile en Décembre.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-            <div className="flex flex-col">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-100">
-                Qualité Certifiée
-              </span>
-              <p className="text-[10px] text-slate-400 mt-1 leading-[1.3]">
-                Tous les robots et plaques électriques sont testés et garantis 1 an.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Corporate details */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -68,22 +41,11 @@ export default function Footer({ whatsappNumber = "+2250102030405", settings, on
           </h4>
           
           <div className="space-y-2">
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Nos numéros d'appel (Cliquez pour appeler) :</span>
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Notre numéro d'appel (Cliquez pour appeler) :</span>
             <div className="flex flex-col gap-2">
-              <a href={`tel:${(settings?.phoneOrange || "07 03 39 79 21").replace(/[^0-9]/g, '')}`} className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white transition-colors">
-                <span className="px-1.5 py-0.5 rounded bg-orange-600/25 text-orange-400 text-[9px] font-extrabold font-mono">ORANGE</span>
-                <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span className="font-mono text-xs hover:underline">{settings?.phoneOrange || "07 03 39 79 21"}</span>
-              </a>
               <a href={`tel:${(settings?.phoneMoov || "01 00 82 57 81").replace(/[^0-9]/g, '')}`} className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white transition-colors">
-                <span className="px-1.5 py-0.5 rounded bg-sky-600/25 text-sky-400 text-[9px] font-extrabold font-mono">MOOV</span>
                 <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                 <span className="font-mono text-xs hover:underline">{settings?.phoneMoov || "01 00 82 57 81"}</span>
-              </a>
-              <a href={`tel:${(settings?.phoneMtn || "05 85 45 98 81").replace(/[^0-9]/g, '')}`} className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white transition-colors">
-                <span className="px-1.5 py-0.5 rounded bg-yellow-600/25 text-yellow-500 text-[9px] font-extrabold font-mono">MTN</span>
-                <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span className="font-mono text-xs hover:underline">{settings?.phoneMtn || "05 85 45 98 81"}</span>
               </a>
             </div>
           </div>
@@ -99,29 +61,42 @@ export default function Footer({ whatsappNumber = "+2250102030405", settings, on
           </div>
 
           {/* Mobile Money Payment Channels Details */}
-          <div className="bg-slate-800/40 border border-slate-800 rounded-2xl p-4 mt-4 space-y-3">
-            <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">
-              Moyens d'Épargne & de Paiement Acceptés
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-[11px] leading-tight">
-              <div className="p-2 rounded bg-slate-800/20 border border-slate-800 flex flex-col">
-                <span className="text-[8px] text-sky-400 font-extrabold tracking-wider uppercase">{settings?.momoWaveName || "🌊 WAVE IP"}</span>
-                <span className="font-mono text-slate-200 mt-1">{settings?.momoWaveNum || "01 00 82 57 81"}</span>
-              </div>
-              <div className="p-2 rounded bg-slate-800/20 border border-slate-800 flex flex-col">
-                <span className="text-[8px] text-orange-400 font-extrabold tracking-wider uppercase">{settings?.momoOrangeName || "🍊 ORANGE MONEY"}</span>
-                <span className="font-mono text-slate-200 mt-1">{settings?.momoOrangeNum || "07 03 39 79 21"}</span>
-              </div>
-              <div className="p-2 rounded bg-slate-800/20 border border-slate-800 flex flex-col">
-                <span className="text-[8px] text-yellow-500 font-extrabold tracking-wider uppercase">{settings?.momoMtnName || "🟡 MTN MOMO"}</span>
-                <span className="font-mono text-slate-200 mt-1">{settings?.momoMtnNum || "05 85 45 98 81"}</span>
-              </div>
-              <div className="p-2 rounded bg-slate-800/20 border border-slate-800 flex flex-col">
-                <span className="text-[8px] text-sky-500 font-extrabold tracking-wider uppercase">{settings?.momoMoovName || "🔵 MOOV MONEY"}</span>
-                <span className="font-mono text-slate-200 mt-1">{settings?.momoMoovNum || "01 00 82 57 81"}</span>
+          {((settings?.momoWaveNum && settings.momoWaveNum.trim() !== "") ||
+            (settings?.momoOrangeNum && settings.momoOrangeNum.trim() !== "") ||
+            (settings?.momoMtnNum && settings.momoMtnNum.trim() !== "") ||
+            (settings?.momoMoovNum && settings.momoMoovNum.trim() !== "")) && (
+            <div className="bg-slate-800/40 border border-slate-800 rounded-2xl p-4 mt-4 space-y-3">
+              <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">
+                Moyens d'Épargne & de Paiement Acceptés
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-[11px] leading-tight">
+                {settings?.momoWaveNum && settings.momoWaveNum.trim() !== "" && (
+                  <div className="p-2 rounded bg-slate-800/20 border border-slate-800 flex flex-col">
+                    <span className="text-[8px] text-sky-400 font-extrabold tracking-wider uppercase">{settings.momoWaveName || "🌊 WAVE IP"}</span>
+                    <span className="font-mono text-slate-200 mt-1">{settings.momoWaveNum}</span>
+                  </div>
+                )}
+                {settings?.momoOrangeNum && settings.momoOrangeNum.trim() !== "" && (
+                  <div className="p-2 rounded bg-slate-800/20 border border-slate-800 flex flex-col">
+                    <span className="text-[8px] text-orange-400 font-extrabold tracking-wider uppercase">{settings.momoOrangeName || "🍊 ORANGE MONEY"}</span>
+                    <span className="font-mono text-slate-200 mt-1">{settings.momoOrangeNum}</span>
+                  </div>
+                )}
+                {settings?.momoMtnNum && settings.momoMtnNum.trim() !== "" && (
+                  <div className="p-2 rounded bg-slate-800/20 border border-slate-800 flex flex-col">
+                    <span className="text-[8px] text-yellow-500 font-extrabold tracking-wider uppercase">{settings.momoMtnName || "🟡 MTN MOMO"}</span>
+                    <span className="font-mono text-slate-200 mt-1">{settings.momoMtnNum}</span>
+                  </div>
+                )}
+                {settings?.momoMoovNum && settings.momoMoovNum.trim() !== "" && (
+                  <div className="p-2 rounded bg-slate-800/20 border border-slate-800 flex flex-col">
+                    <span className="text-[8px] text-sky-500 font-extrabold tracking-wider uppercase">{settings.momoMoovName || "🔵 MOOV MONEY"}</span>
+                    <span className="font-mono text-slate-200 mt-1">{settings.momoMoovNum}</span>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
 
           {/* Quick Chat Bubble trigger */}
           <a

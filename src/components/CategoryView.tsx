@@ -168,17 +168,45 @@ export default function CategoryView({ category, kits, onSelectKit, onBack }: Ca
                           Composition du Kit :
                         </span>
                         <div className="grid grid-cols-1 gap-1">
-                          {kit.products && kit.products.slice(0, 3).map((prod, pIdx) => (
-                            <div key={pIdx} className="flex items-start gap-1.5 text-xs text-slate-600">
-                              <CheckCircle2 className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${theme.textColor}`} />
-                              <span className="truncate">{prod}</span>
-                            </div>
-                          ))}
-                          {kit.products && kit.products.length > 3 && (
-                            <span className="text-[10px] font-semibold text-blue-600 bg-blue-50/50 py-0.5 px-2 rounded-md inline-block mt-0.5 self-start">
-                              + {kit.products.length - 3} autres produits inclus
-                            </span>
-                          )}
+                          {(() => {
+                            const counts: { [name: string]: number } = {};
+                            const uniques: string[] = [];
+                            (kit.products || []).forEach(p => {
+                              const t = p.trim();
+                              if (!t) return;
+                              const existing = uniques.find(u => u.toLowerCase() === t.toLowerCase());
+                              if (existing) {
+                                counts[existing]++;
+                              } else {
+                                uniques.push(t);
+                                counts[t] = 1;
+                              }
+                            });
+                            
+                            const sliced = uniques.slice(0, 3);
+                            return (
+                              <>
+                                {sliced.map((prod, pIdx) => (
+                                  <div key={pIdx} className="flex items-center gap-1.5 text-xs text-slate-600 justify-between pr-4">
+                                    <div className="flex items-center gap-1.5 truncate">
+                                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${theme.textColor}`} />
+                                      <span className="truncate">{prod}</span>
+                                    </div>
+                                    {counts[prod] > 1 && (
+                                      <span className="text-[9px] font-bold text-blue-600 font-mono shrink-0 bg-blue-50 px-1 rounded">
+                                        ×{counts[prod]}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                                {uniques.length > 3 && (
+                                  <span className="text-[10px] font-semibold text-blue-600 bg-blue-50/50 py-0.5 px-2 rounded-md inline-block mt-0.5 self-start">
+                                    + {uniques.length - 3} autres produits inclus
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>

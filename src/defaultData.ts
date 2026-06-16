@@ -277,7 +277,8 @@ export const fallbackSettings: SiteSettings = {
   momoMtnName: "🟡 MTN MOMO",
   momoMtnNum: "05 85 45 98 81",
   momoMoovName: "🔵 MOOV MONEY",
-  momoMoovNum: "01 00 82 57 81"
+  momoMoovNum: "01 00 82 57 81",
+  featuredKitIds: ["bronze_1", "bronze_2", "argent_1"]
 };
 
 export const fallbackProducts: CatalogProduct[] = [

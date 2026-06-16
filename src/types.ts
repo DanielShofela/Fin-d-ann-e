@@ -66,6 +66,7 @@ export interface SiteSettings {
   momoMtnNum: string;
   momoMoovName: string;
   momoMoovNum: string;
+  featuredKitIds?: string[];
 }
 
 export interface CatalogProduct {

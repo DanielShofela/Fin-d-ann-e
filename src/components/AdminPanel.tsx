@@ -1307,7 +1307,6 @@ export default function AdminPanel({
                       <label className="block tracking-wider text-[9px]">Ligne Orange :</label>
                       <input
                         type="text"
-                        required
                         className="w-full bg-slate-50 border border-slate-200 p-2 text-slate-800 font-mono text-[11px]"
                         value={settingsForm.phoneOrange}
                         onChange={e => setSettingsForm({ ...settingsForm, phoneOrange: e.target.value })}
@@ -1317,7 +1316,6 @@ export default function AdminPanel({
                       <label className="block tracking-wider text-[9px]">Ligne Moov :</label>
                       <input
                         type="text"
-                        required
                         className="w-full bg-slate-50 border border-slate-200 p-2 text-slate-800 font-mono text-[11px]"
                         value={settingsForm.phoneMoov}
                         onChange={e => setSettingsForm({ ...settingsForm, phoneMoov: e.target.value })}
@@ -1327,7 +1325,6 @@ export default function AdminPanel({
                       <label className="block tracking-wider text-[9px]">Ligne MTN :</label>
                       <input
                         type="text"
-                        required
                         className="w-full bg-slate-50 border border-slate-200 p-2 text-slate-800 font-mono text-[11px]"
                         value={settingsForm.phoneMtn}
                         onChange={e => setSettingsForm({ ...settingsForm, phoneMtn: e.target.value })}
@@ -1362,7 +1359,6 @@ export default function AdminPanel({
                     <label className="block tracking-wider text-[9px] text-sky-500">Label WAVE :</label>
                     <input
                       type="text"
-                      required
                       className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl normal-case text-slate-800"
                       value={settingsForm.momoWaveName}
                       onChange={e => setSettingsForm({ ...settingsForm, momoWaveName: e.target.value })}
@@ -1372,7 +1368,6 @@ export default function AdminPanel({
                     <label className="block tracking-wider text-[9px] text-sky-500 font-mono">N° de Compte :</label>
                     <input
                       type="text"
-                      required
                       className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl normal-case text-slate-800 font-mono"
                       value={settingsForm.momoWaveNum}
                       onChange={e => setSettingsForm({ ...settingsForm, momoWaveNum: e.target.value })}
@@ -1385,7 +1380,6 @@ export default function AdminPanel({
                     <label className="block tracking-wider text-[9px] text-orange-500">Label ORANGE :</label>
                     <input
                       type="text"
-                      required
                       className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl normal-case text-slate-800"
                       value={settingsForm.momoOrangeName}
                       onChange={e => setSettingsForm({ ...settingsForm, momoOrangeName: e.target.value })}
@@ -1395,7 +1389,6 @@ export default function AdminPanel({
                     <label className="block tracking-wider text-[9px] text-orange-500 font-mono">N° de Compte :</label>
                     <input
                       type="text"
-                      required
                       className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl normal-case text-slate-800 font-mono"
                       value={settingsForm.momoOrangeNum}
                       onChange={e => setSettingsForm({ ...settingsForm, momoOrangeNum: e.target.value })}
@@ -1408,7 +1401,6 @@ export default function AdminPanel({
                     <label className="block tracking-wider text-[9px] text-yellow-600">Label MTN :</label>
                     <input
                       type="text"
-                      required
                       className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl normal-case text-slate-800"
                       value={settingsForm.momoMtnName}
                       onChange={e => setSettingsForm({ ...settingsForm, momoMtnName: e.target.value })}
@@ -1418,7 +1410,6 @@ export default function AdminPanel({
                     <label className="block tracking-wider text-[9px] text-yellow-600 font-mono">N° de Compte :</label>
                     <input
                       type="text"
-                      required
                       className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl normal-case text-slate-800 font-mono"
                       value={settingsForm.momoMtnNum}
                       onChange={e => setSettingsForm({ ...settingsForm, momoMtnNum: e.target.value })}
@@ -1431,7 +1422,6 @@ export default function AdminPanel({
                     <label className="block tracking-wider text-[9px] text-sky-600">Label MOOV :</label>
                     <input
                       type="text"
-                      required
                       className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl normal-case text-slate-800"
                       value={settingsForm.momoMoovName}
                       onChange={e => setSettingsForm({ ...settingsForm, momoMoovName: e.target.value })}
@@ -1441,13 +1431,58 @@ export default function AdminPanel({
                     <label className="block tracking-wider text-[9px] text-sky-600 font-mono">N° de Compte :</label>
                     <input
                       type="text"
-                      required
                       className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl normal-case text-slate-800 font-mono"
                       value={settingsForm.momoMoovNum}
                       onChange={e => setSettingsForm({ ...settingsForm, momoMoovNum: e.target.value })}
                     />
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* SELECTION DES KITS VEDETTES (GAMME ELITE) */}
+            <div className="bg-white rounded-3xl p-5 border shadow-sm space-y-4">
+              <div className="flex items-center gap-2 border-b pb-3">
+                <Tag className="w-5 h-5 text-amber-500" />
+                <h3 className="font-display font-black text-xs uppercase tracking-wider text-slate-800">
+                  Gamme Élite (Les 3 Packs Vedettes)
+                </h3>
+              </div>
+              <p className="text-[11px] text-slate-500 normal-case leading-relaxed">
+                Configurez les 3 kits de votre choix qui figureront à l'honneur dans la section <strong>"Packs Vedettes de Fin d'Année"</strong> sur la page d'accueil de l'application.
+              </p>
+              
+              <div className="space-y-3.5">
+                {[0, 1, 2].map((index) => {
+                  const currentValue = (settingsForm.featuredKitIds || [])[index] || '';
+                  return (
+                    <div key={index} className="space-y-1">
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        Pack Vedette #{index + 1} :
+                      </label>
+                      <select
+                        className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold normal-case text-slate-800 focus:outline-none"
+                        value={currentValue}
+                        onChange={(e) => {
+                          const newList = [...(settingsForm.featuredKitIds || [])];
+                          // Fill missing elements up to 3
+                          while (newList.length < 3) {
+                            newList.push('');
+                          }
+                          newList[index] = e.target.value;
+                          setSettingsForm({ ...settingsForm, featuredKitIds: newList });
+                        }}
+                      >
+                        <option value="">-- Sélectionnez un Kit --</option>
+                        {kits.map((kit) => (
+                          <option key={kit.id} value={kit.id}>
+                            {kit.name} ({kit.dailyAmount} / jour)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -2189,21 +2224,58 @@ export default function AdminPanel({
                 />
               </div>
 
-              {/* Product Image URL */}
+              {/* Product Image Upload & URL */}
               <div className="space-y-1.5">
-                <label className="block tracking-wider">Image (URL optionnelle)</label>
-                <input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={prodForm.image}
-                  onChange={(e) => setProdForm({ ...prodForm, image: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-800 normal-case focus:outline-none"
-                />
-                {prodForm.image && (
-                  <div className="mt-2 h-14 w-14 rounded-xl border overflow-hidden bg-slate-50 flex items-center justify-center">
-                    <img src={prodForm.image} alt="Aperçu produit" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-                  </div>
-                )}
+                <label className="block tracking-wider">Image de l'article</label>
+                
+                {/* File input directly styled as drag/drop upload card */}
+                <div className="flex gap-2 items-start">
+                  <label className="flex-1 border border-dashed border-slate-300 hover:border-[#0D47FF]/50 hover:bg-blue-50/20 rounded-xl p-3 text-center cursor-pointer flex flex-col items-center justify-center gap-1 transition-all bg-white">
+                    <span className="text-[11px] font-bold text-slate-600">
+                      {isUploading ? 'Téléversement...' : 'Cliquez pour uploader un fichier'}
+                    </span>
+                    <span className="text-[9px] text-slate-400">JPEG, PNG de l'appareil</span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const uploadedUrl = await uploadImageFile(file);
+                          if (uploadedUrl) {
+                            setProdForm({ ...prodForm, image: uploadedUrl });
+                            showStatus("Image importée avec succès !");
+                          }
+                        }
+                      }}
+                    />
+                  </label>
+
+                  {prodForm.image && (
+                    <div className="relative h-16 w-16 rounded-xl border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center shrink-0">
+                      <img src={prodForm.image} alt="Aperçu produit" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                      <button
+                        type="button"
+                        onClick={() => setProdForm({ ...prodForm, image: '' })}
+                        className="absolute inset-0 bg-black/50 hover:bg-black/70 flex items-center justify-center text-white text-[10px] font-bold transition-opacity"
+                      >
+                        Retirer
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-1">
+                  <span className="text-[9px] text-slate-400 block tracking-wider uppercase mb-1">Ou saisir un lien d'image direct :</span>
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash.com/..."
+                    value={prodForm.image}
+                    onChange={(e) => setProdForm({ ...prodForm, image: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-medium text-slate-800 normal-case focus:outline-none"
+                  />
+                </div>
               </div>
 
               {/* Submit Trigger */}
