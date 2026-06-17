@@ -18,15 +18,10 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.token.email == "digitalsoutien@gmail.com";
     }
     match /clients/{clientId} {
-      allow read: if request.auth != null && (request.auth.uid == clientId || request.auth.token.email == "digitalsoutien@gmail.com");
-      allow create: if request.auth != null && request.auth.uid == clientId;
-      allow update: if request.auth != null && (request.auth.uid == clientId || request.auth.token.email == "digitalsoutien@gmail.com");
-      allow delete: if request.auth != null && request.auth.token.email == "digitalsoutien@gmail.com";
+      allow read, write: if true;
     }
     match /paiements/{paymentId} {
-      allow read: if request.auth != null && (resource.data.clientId == request.auth.uid || request.auth.token.email == "digitalsoutien@gmail.com");
-      allow create: if request.auth != null && (request.resource.data.clientId == request.auth.uid || request.auth.token.email == "digitalsoutien@gmail.com");
-      allow update, delete: if request.auth != null && request.auth.token.email == "digitalsoutien@gmail.com";
+      allow read, write: if true;
     }
   }
 }

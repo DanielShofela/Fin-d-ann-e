@@ -124,22 +124,22 @@ export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250
   const [paymentSuccessMsg, setPaymentSuccessMsg] = useState('');
 
   // --------------------------------------------------------------------
-  // Sync Profile Name-Only Autologin from Submission
+  // Sync Profile Autologin from Submission
   // --------------------------------------------------------------------
   useEffect(() => {
     const autoLogin = async () => {
-      const storedName = localStorage.getItem('saved_client_profile_name');
+      const storedPhone = localStorage.getItem('saved_client_profile_phone');
       const storedUid = localStorage.getItem('saved_client_profile_uid');
 
       if (storedUid) {
         setLocalClientId(storedUid);
         setAuthLoading(false);
-      } else if (storedName) {
+      } else if (storedPhone) {
         try {
           const response = await fetch('/api/clients/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nom: storedName })
+            body: JSON.stringify({ telephone: storedPhone })
           });
           if (response.ok) {
             const data = await response.json();
@@ -149,7 +149,7 @@ export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250
             }
           }
         } catch (e) {
-          console.error("Auto login by name failed:", e);
+          console.error("Auto login by phone failed:", e);
         } finally {
           setAuthLoading(false);
         }
@@ -269,6 +269,7 @@ export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250
         setLocalClientId(resData.clientId);
         localStorage.setItem('saved_client_profile_uid', resData.clientId);
         localStorage.setItem('saved_client_profile_name', cleanName);
+        localStorage.setItem('saved_client_profile_phone', cleanPhone);
         console.log("Client created successfully via local DB:", resData.clientId);
       } else {
         throw new Error(resData.error || "Échec de l'enregistrement de votre profil.");
@@ -282,15 +283,15 @@ export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250
   };
 
   // --------------------------------------------------------------------
-  // Login action (profile name-only based)
+  // Login action (telephone-based)
   // --------------------------------------------------------------------
   const handleSignInAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
     
-    const cleanName = fullName.trim();
-    if (!cleanName) {
-      setFormError("Veuillez entrer votre nom complet de profil.");
+    const cleanPhone = phone.trim();
+    if (!cleanPhone) {
+      setFormError("Veuillez entrer votre numéro de téléphone.");
       return;
     }
 
@@ -299,20 +300,21 @@ export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250
       const response = await fetch('/api/clients/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nom: cleanName })
+        body: JSON.stringify({ telephone: cleanPhone })
       });
 
       const resData = await response.json();
       if (response.ok && resData.success && resData.client) {
         setLocalClientId(resData.client.uid);
         localStorage.setItem('saved_client_profile_uid', resData.client.uid);
+        localStorage.setItem('saved_client_profile_phone', resData.client.telephone);
         localStorage.setItem('saved_client_profile_name', resData.client.nom);
       } else {
         setFormError(resData.error || "Une erreur s'est produite lors de la connexion.");
       }
     } catch (err: any) {
       console.error("Sign in failed:", err);
-      setFormError("Aucun profil correspondant n'a été trouvé. Veuillez vérifier l'orthographe.");
+      setFormError("Aucun profil correspondant n'a été trouvé pour ce numéro de téléphone.");
     } finally {
       setActionLoading(false);
     }
@@ -322,6 +324,7 @@ export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250
     try {
       localStorage.removeItem('saved_client_profile_uid');
       localStorage.removeItem('saved_client_profile_name');
+      localStorage.removeItem('saved_client_profile_phone');
       setLocalClientId(null);
     } catch (err) {
       console.error("Logout failed:", err);
@@ -511,26 +514,46 @@ export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250
             {/* FORM CONTAINER */}
             <form onSubmit={authMode === 'login' ? handleSignInAction : handleSignUpAction} className="space-y-4">
               
-              {/* Full Profile Name: ALWAYS visible to login or sign up */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  {authMode === 'login' ? "Entrez votre Nom de Profil complet" : "Votre Nom Complet"}
-                </label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: Kouassi Koffi Jean"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:bg-white focus:outline-none transition-all placeholder:text-slate-400"
-                  />
+              {/* Login Mode: Telephone field only */}
+              {authMode === 'login' && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Votre Numéro de Téléphone
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="tel"
+                      required
+                      placeholder="Ex: 0707070707"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:bg-white focus:outline-none transition-all placeholder:text-slate-400"
+                    />
+                  </div>
                 </div>
-              </div>
-              
+              )}
+
+              {/* Register Mode: Nom Complet & Téléphone */}
               {authMode === 'register' && (
                 <>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Votre Nom Complet
+                    </label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Kouassi Koffi Jean"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:bg-white focus:outline-none transition-all placeholder:text-slate-400"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                       Numéro de Téléphone (Mobile Money)

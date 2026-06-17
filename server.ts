@@ -754,37 +754,39 @@ app.post('/api/clients/register', async (req, res) => {
   }
 });
 
-// 6. Client Login using full Profile Name only (No password required)
+// 6. Client Login using Telephone number (No password required)
 app.post('/api/clients/login', async (req, res) => {
   try {
-    const { nom } = req.body;
-    if (!nom) {
-      return res.status(400).json({ error: "Le nom de profil complet est requis pour la connexion." });
+    const { telephone } = req.body;
+    if (!telephone) {
+      return res.status(400).json({ error: "Le numéro de téléphone est requis pour la connexion." });
     }
 
     if (!dbFirestore) {
       return res.status(500).json({ error: "Base de données Firestore non connectée sur le serveur." });
     }
 
-    const cleanName = nom.trim().toLowerCase();
+    const cleanPhone = telephone.trim().replace(/\s+/g, '');
     const clientsRef = collection(dbFirestore, 'clients');
     const snapshot = await getDocs(clientsRef);
     let matchedClient: any = null;
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      if ((data.nom || '').trim().toLowerCase() === cleanName) {
+      const existingPhone = (data.telephone || '').trim().replace(/\s+/g, '');
+      const existingWhatsapp = (data.whatsapp || '').trim().replace(/\s+/g, '');
+      if (existingPhone === cleanPhone || (existingWhatsapp && existingWhatsapp === cleanPhone)) {
         matchedClient = { id: docSnap.id, ...data };
       }
     });
 
     if (!matchedClient) {
-      return res.status(404).json({ error: "Aucun compte n'a été trouvé avec ce nom complet de profil. Assurez-vous d'entrer l'orthographe exacte saisie lors de votre souscription." });
+      return res.status(404).json({ error: "Aucun compte n'a été trouvé avec ce numéro de téléphone (" + telephone + "). Assurez-vous d'entrer le numéro saisi lors de votre souscription." });
     }
 
     res.json({ success: true, client: matchedClient });
   } catch (err: any) {
-    console.error("Error login by name only:", err);
+    console.error("Error login by phone only:", err);
     res.status(500).json({ error: err.message || "Erreur lors de la connexion." });
   }
 });
