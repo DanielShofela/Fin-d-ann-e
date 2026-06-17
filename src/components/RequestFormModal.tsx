@@ -55,24 +55,60 @@ export default function RequestFormModal({ kit, onClose, whatsappNumber = "+2250
     //
     // Merci de me contacter pour la suite.
     
-    let message = `Bonjour Penta Gad Distribution,
+    // Group duplicate products inside the kit
+    const productCounts: { [name: string]: number } = {};
+    const uniqueProducts: string[] = [];
+    (kit.products || []).forEach(prod => {
+      if (!prod) return;
+      const trimmed = prod.trim();
+      if (!trimmed) return;
+      const existing = uniqueProducts.find(o => o.toLowerCase() === trimmed.toLowerCase());
+      if (existing) {
+        productCounts[existing]++;
+      } else {
+        uniqueProducts.push(trimmed);
+        productCounts[trimmed] = 1;
+      }
+    });
 
-Je souhaite souscrire au :
+    const compositionText = uniqueProducts.map(prod => {
+      const count = productCounts[prod];
+      return count > 1 ? `- ${prod} (x${count})` : `- ${prod}`;
+    }).join('\n');
 
-Kit : ${kit.name}
-
-Nom : ${formData.name}
-Téléphone : ${formData.phone}
-WhatsApp : ${formData.whatsapp}
-Ville : ${formData.city}
-Commune : ${formData.commune}
-Adresse : ${formData.address}`;
-
-    if (formData.comment.trim()) {
-      message += `\nCommentaire : ${formData.comment}`;
+    let kitImgUrl = kit.images && kit.images[0] ? kit.images[0] : '';
+    if (kitImgUrl && !kitImgUrl.startsWith('http') && !kitImgUrl.startsWith('data:')) {
+      kitImgUrl = `${window.location.origin}${kitImgUrl}`;
     }
 
-    message += `\n\nMerci de me contacter pour la suite.`;
+    let message = `Bonjour Penta Gad Distribution,
+
+Je souhaite souscrire au kit de fin d'année suivant :
+
+*Kit :* ${kit.name}
+*Tarif :* ${kit.dailyAmount} / jour
+
+*Composition du Kit :*
+${compositionText || "- (Aucun produit spécifié)"}
+
+---
+*Informations de livraison :*
+*Nom :* ${formData.name}
+*Téléphone :* ${formData.phone}
+*WhatsApp :* ${formData.whatsapp}
+*Ville :* ${formData.city}
+*Commune / Quartier :* ${formData.commune}
+*Adresse :* ${formData.address}`;
+
+    if (formData.comment.trim()) {
+      message += `\n*Note :* ${formData.comment}`;
+    }
+
+    if (kitImgUrl && kitImgUrl.startsWith('http')) {
+      message += `\n\n*Aperçu du Kit :* ${kitImgUrl}`;
+    }
+
+    message += `\n\nMerci de me contacter pour finaliser ma souscription.`;
 
     // Encode text for HTTP URL
     const encodedMessage = encodeURIComponent(message);
