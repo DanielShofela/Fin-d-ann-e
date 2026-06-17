@@ -120,14 +120,28 @@ export default function AdminPanel({
   // Sync state if settings update
   useEffect(() => {
     if (settings) {
-      setSettingsForm(settings);
+      const activeFeatured = (settings.featuredKitIds || []).filter(id => kits.some(k => k.id === id));
+      setSettingsForm({
+        ...settings,
+        featuredKitIds: activeFeatured
+      });
     }
-  }, [settings]);
+  }, [settings, kits]);
 
   const handleSettingsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingSettings(true);
-    const success = await onUpdateSettings(settingsForm);
+    
+    // Clean up empty or obsolete kit IDs before saving
+    const cleanedFeaturedIds = (settingsForm.featuredKitIds || [])
+      .filter(id => id && id.trim() !== "" && kits.some(k => k.id === id));
+
+    const updatedForm = {
+      ...settingsForm,
+      featuredKitIds: cleanedFeaturedIds
+    };
+
+    const success = await onUpdateSettings(updatedForm);
     setIsSavingSettings(false);
     if (success) {
       showStatus('Configuration du site enregistrée et mise en ligne !');
@@ -291,9 +305,12 @@ export default function AdminPanel({
 
   const handleToggleStarKit = async (kitId: string) => {
     const currentFeatured = settings?.featuredKitIds || [];
-    if (currentFeatured.includes(kitId)) {
+    // Only keep IDs that actually exist in the current kits list!
+    const activeFeatured = currentFeatured.filter(id => kits.some(k => k.id === id));
+    
+    if (activeFeatured.includes(kitId)) {
       // Remove Star
-      const newFeatured = currentFeatured.filter(id => id !== kitId);
+      const newFeatured = activeFeatured.filter(id => id !== kitId);
       const success = await onUpdateSettings({ featuredKitIds: newFeatured });
       if (success) {
         showStatus('Kit retiré de la page d\'accueil.');
@@ -302,14 +319,14 @@ export default function AdminPanel({
       }
     } else {
       // Add Star
-      if (currentFeatured.length >= 3) {
+      if (activeFeatured.length >= 3) {
         alert("Vous avez déjà sélectionné 3 kits vedettes. Veuillez d'abord retirer l'étoile de l'un des kits vedettes actuels.");
         return;
       }
-      const newFeatured = [...currentFeatured, kitId];
+      const newFeatured = [...activeFeatured, kitId];
       const success = await onUpdateSettings({ featuredKitIds: newFeatured });
       if (success) {
-        showStatus('Kit marqué comme Vedette et ajouté à la page d\'accueil !');
+        showStatus("Kit marqué comme Vedette et ajouté à la page d'accueil !");
       } else {
         showStatus('Échec du marquage.', 'error');
       }
