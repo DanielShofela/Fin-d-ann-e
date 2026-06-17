@@ -1,6 +1,6 @@
 {
-  "name": "Remix: Penta Gad Distribution - Packs Fin d\u0027Année",
-  "description": "Premium showcase catalog and WhatsApp lead generation platform for end-of-year kits, including food, appliances, and home decoration packs.",
+  "name": "PENTA GAD | Distribution",
+  "description": "Catalogue de packs d'adhésion de fin d'année (alimentaires, électroménagers, déco) avec possibilité de souscription et contributions journalières flexibles via Mobile Money (Wave, Orange, Moov, MTN) et contacts directs WhatsApp.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
