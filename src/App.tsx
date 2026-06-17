@@ -287,12 +287,24 @@ export default function App() {
         document.head.appendChild(faviconLink);
       }
       
+      const logo = settings.logoUrl || "https://kit26.netlify.app/logo.jpg";
+      
       if (settings.logoUrl) {
         faviconLink.href = settings.logoUrl;
       } else {
-        // Fallback to unicode emoji svg representing the gift icon
-        faviconLink.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>";
+        faviconLink.href = "/favicon.png";
       }
+
+      // Update Open Graph & Twitter meta tags dynamically
+      const ogTitle = `${name} | ${subtitle} - Packs de Fin d'Année`;
+      const ogDesc = settings.heroSubtitle || "Découvrez nos kits alimentaires, électroménagers et maison.";
+      
+      document.querySelector('meta[property="og:title"]')?.setAttribute('content', ogTitle);
+      document.querySelector('meta[property="og:description"]')?.setAttribute('content', ogDesc);
+      document.querySelector('meta[property="og:image"]')?.setAttribute('content', logo);
+      document.querySelector('meta[property="twitter:title"]')?.setAttribute('content', ogTitle);
+      document.querySelector('meta[property="twitter:description"]')?.setAttribute('content', ogDesc);
+      document.querySelector('meta[property="twitter:image"]')?.setAttribute('content', logo);
     }
   }, [settings]);
 
