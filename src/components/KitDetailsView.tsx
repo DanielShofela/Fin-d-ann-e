@@ -142,12 +142,12 @@ export default function KitDetailsView({ kit, category, products = [], onBack, o
 
             {/* Top Info Badge Overlay depending on item type */}
             {activeItem?.type === 'product' ? (
-              <span className="absolute top-3 left-3 bg-[#0D47FF] text-white text-[10px] font-extrabold uppercase px-2.5 py-1.5 rounded-lg tracking-wider border border-blue-500/20 shadow-md flex items-center gap-1.5 backdrop-blur-md">
+              <span className="absolute top-3 right-3 bg-[#0D47FF] text-white text-[10px] font-extrabold uppercase px-2.5 py-1.5 rounded-lg tracking-wider border border-blue-500/20 shadow-md flex items-center gap-1.5 backdrop-blur-md">
                 <ShoppingBag className="w-3.5 h-3.5 text-white" />
                 <span>{activeItem.quantity && activeItem.quantity > 1 ? `${activeItem.title} (x${activeItem.quantity})` : activeItem.title}</span>
               </span>
             ) : (
-              <span className="absolute top-3 left-3 bg-slate-950/75 text-white text-[10px] font-extrabold uppercase px-2.5 py-1.5 rounded-lg tracking-wider border border-white/10 shadow-md backdrop-blur-md">
+              <span className="absolute top-3 right-3 bg-slate-950/75 text-white text-[10px] font-extrabold uppercase px-2.5 py-1.5 rounded-lg tracking-wider border border-white/10 shadow-md backdrop-blur-md">
                 Aperçu Général du Kit
               </span>
             )}
