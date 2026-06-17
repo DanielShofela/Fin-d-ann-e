@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, ArrowUp, ArrowDown, Save, X, Lock, 
   Settings, CheckCircle, RefreshCcw, Tag, ShoppingBag, Eye,
-  Image as ImageIcon, HelpCircle, Layers, ClipboardList, Info
+  Image as ImageIcon, HelpCircle, Layers, ClipboardList, Info, Star
 } from 'lucide-react';
 import { Category, Kit, SiteSettings, CatalogProduct } from '../types';
 
@@ -286,6 +286,33 @@ export default function AdminPanel({
       onRefreshData();
     } else {
       showStatus('Échec de la réorganisation des kits', 'error');
+    }
+  };
+
+  const handleToggleStarKit = async (kitId: string) => {
+    const currentFeatured = settings?.featuredKitIds || [];
+    if (currentFeatured.includes(kitId)) {
+      // Remove Star
+      const newFeatured = currentFeatured.filter(id => id !== kitId);
+      const success = await onUpdateSettings({ featuredKitIds: newFeatured });
+      if (success) {
+        showStatus('Kit retiré de la page d\'accueil.');
+      } else {
+        showStatus('Échec du retrait.', 'error');
+      }
+    } else {
+      // Add Star
+      if (currentFeatured.length >= 3) {
+        alert("Vous avez déjà sélectionné 3 kits vedettes. Veuillez d'abord retirer l'étoile de l'un des kits vedettes actuels.");
+        return;
+      }
+      const newFeatured = [...currentFeatured, kitId];
+      const success = await onUpdateSettings({ featuredKitIds: newFeatured });
+      if (success) {
+        showStatus('Kit marqué comme Vedette et ajouté à la page d\'accueil !');
+      } else {
+        showStatus('Échec du marquage.', 'error');
+      }
     }
   };
 
@@ -866,6 +893,26 @@ export default function AdminPanel({
 
                     {/* Toolbar Row */}
                     <div className="flex items-center gap-1 shrink-0">
+                      {(() => {
+                        const isStarred = (settings?.featuredKitIds || []).includes(kit.id);
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStarKit(kit.id)}
+                            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                              isStarred 
+                                ? 'text-amber-500 bg-amber-50 hover:bg-amber-100/50 border border-amber-200/50' 
+                                : 'text-slate-350 hover:text-amber-500 hover:bg-slate-100/50'
+                            }`}
+                            title={isStarred ? "Vedette (Retirer de la page d'accueil)" : "Marquer comme Vedette (Afficher sur la page d'accueil)"}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${isStarred ? 'fill-current text-amber-500' : 'fill-none text-slate-400'}`} />
+                          </button>
+                        );
+                      })()}
+
+                      <div className="h-5 w-[1px] bg-slate-150 mx-1" />
+
                       {/* Reordering buttons within active segment scope */}
                       <button
                         onClick={() => handleMoveKit(idx, 'up')}
@@ -1448,8 +1495,8 @@ export default function AdminPanel({
                   Gamme Élite (Les 3 Packs Vedettes)
                 </h3>
               </div>
-              <p className="text-[11px] text-slate-500 normal-case leading-relaxed">
-                Configurez les 3 kits de votre choix qui figureront à l'honneur dans la section <strong>"Packs Vedettes de Fin d'Année"</strong> sur la page d'accueil de l'application.
+               <p className="text-[11px] text-slate-500 normal-case leading-relaxed">
+                Configurez les 3 kits de votre choix qui figureront à l'honneur dans la section <strong>"Packs Vedettes de Fin d'Année"</strong> sur la page d'accueil de l'application. Vous pouvez également cliquer directement sur l'icône <strong>Étoile (⭐)</strong> depuis la liste des kits dans l'onglet <strong>"Kits"</strong> pour les ajouter ou les retirer des vedettes de manière très intuitive et rapide !
               </p>
               
               <div className="space-y-3.5">
