@@ -40,15 +40,46 @@ export default function Footer({ whatsappNumber = "+2250102030405", settings, on
             Centre de Relation Client & Commandes
           </h4>
           
-          <div className="space-y-2">
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Notre numéro d'appel (Cliquez pour appeler) :</span>
-            <div className="flex flex-col gap-2">
-              <a href={`tel:${(settings?.phoneMoov || "01 00 82 57 81").replace(/[^0-9]/g, '')}`} className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white transition-colors">
-                <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span className="font-mono text-xs hover:underline">{settings?.phoneMoov || "01 00 82 57 81"}</span>
-              </a>
+          {((settings?.phoneOrange && settings.phoneOrange.trim() !== "") ||
+            (settings?.phoneMoov && settings.phoneMoov.trim() !== "") ||
+            (settings?.phoneMtn && settings.phoneMtn.trim() !== "")) ? (
+            <div className="space-y-2">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Nos numéros d'appel (Cliquez pour appeler) :</span>
+              <div className="flex flex-col gap-2">
+                {settings?.phoneOrange && settings.phoneOrange.trim() !== "" && (
+                  <a href={`tel:${settings.phoneOrange.replace(/[^0-9]/g, '')}`} className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white transition-colors">
+                    <span className="px-1.5 py-0.5 rounded bg-orange-600/25 text-orange-400 text-[9px] font-extrabold font-mono">ORANGE</span>
+                    <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span className="font-mono text-xs hover:underline">{settings.phoneOrange}</span>
+                  </a>
+                )}
+                {settings?.phoneMoov && settings.phoneMoov.trim() !== "" && (
+                  <a href={`tel:${settings.phoneMoov.replace(/[^0-9]/g, '')}`} className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white transition-colors">
+                    <span className="px-1.5 py-0.5 rounded bg-sky-600/25 text-sky-400 text-[9px] font-extrabold font-mono">MOOV</span>
+                    <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span className="font-mono text-xs hover:underline">{settings.phoneMoov}</span>
+                  </a>
+                )}
+                {settings?.phoneMtn && settings.phoneMtn.trim() !== "" && (
+                  <a href={`tel:${settings.phoneMtn.replace(/[^0-9]/g, '')}`} className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white transition-colors">
+                    <span className="px-1.5 py-0.5 rounded bg-yellow-600/25 text-yellow-500 text-[9px] font-extrabold font-mono">MTN</span>
+                    <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span className="font-mono text-xs hover:underline">{settings.phoneMtn}</span>
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-2">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Notre numéro d'appel (Cliquez pour appeler) :</span>
+              <div className="flex flex-col gap-2">
+                <a href={`tel:${"0100825781"}`} className="flex items-center gap-2.5 text-xs text-slate-200 hover:text-white transition-colors">
+                  <Phone className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                  <span className="font-mono text-xs hover:underline">01 00 82 57 81</span>
+                </a>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-start gap-2.5 text-xs pt-2">
             <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />

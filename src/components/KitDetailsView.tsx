@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ArrowLeft, Check, Sparkles, ShieldCheck, Truck, Calendar, DollarSign, ChevronRight, HelpCircle, ShoppingBag } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Check, Sparkles, ShieldCheck, Truck, Calendar, DollarSign, ChevronRight, ChevronLeft, HelpCircle, ShoppingBag } from 'lucide-react';
 import { Kit, Category, CatalogProduct } from '../types';
 import { motion } from 'motion/react';
 
@@ -11,12 +11,18 @@ interface KitDetailsViewProps {
   onChooseKit: () => void;
 }
 
+interface GalleryItem {
+  type: 'kit' | 'product';
+  url: string;
+  title: string;
+  quantity?: number;
+}
+
 export default function KitDetailsView({ kit, category, products = [], onBack, onChooseKit }: KitDetailsViewProps) {
   const [activeImageIdx, setActiveImageIdx] = useState(0);
 
   // Fallback for missing images
   const kitImages = kit.images && kit.images.length > 0 ? kit.images : ['https://picsum.photos/seed/kit/600/400'];
-  const activeImage = kitImages[activeImageIdx] || kitImages[0];
 
   // Group duplicate products inside the kit
   const productCounts: { [name: string]: number } = {};
@@ -33,6 +39,66 @@ export default function KitDetailsView({ kit, category, products = [], onBack, o
       productCounts[trimmed] = 1;
     }
   });
+
+  // Collect all gallery items: general kit images + images of products in the kit
+  const galleryItems: GalleryItem[] = [];
+
+  // 1. Add Kit's own images
+  kitImages.forEach((img, index) => {
+    galleryItems.push({
+      type: 'kit',
+      url: img,
+      title: `${kit.name} - Aperçu ${index + 1}`
+    });
+  });
+
+  // 2. Add images of products in the kit (avoiding duplicates)
+  uniqueProducts.forEach(prodName => {
+    const matched = (products || []).find(p => p.name.trim().toLowerCase() === prodName.trim().toLowerCase());
+    const count = productCounts[prodName] || 1;
+    const imageUrl = matched?.image;
+    if (imageUrl && imageUrl.trim()) {
+      galleryItems.push({
+        type: 'product',
+        url: imageUrl,
+        title: prodName,
+        quantity: count
+      });
+    }
+  });
+
+  // Safeguard active index out of bounds on kit change
+  const safeActiveIdx = activeImageIdx >= galleryItems.length ? 0 : activeImageIdx;
+  const activeItem = galleryItems[safeActiveIdx] || galleryItems[0];
+
+  const nextImage = () => {
+    setActiveImageIdx((prev) => (prev + 1) % galleryItems.length);
+  };
+
+  const prevImage = () => {
+    setActiveImageIdx((prev) => (prev - 1 + galleryItems.length) % galleryItems.length);
+  };
+
+  // Light-weight native touch swipe event coordinates
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX = e.targetTouches[0].clientX;
+    touchEndX = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX - touchEndX > 50) {
+      nextImage(); // Swiped Left -> show next
+    } else if (touchStartX - touchEndX < -50) {
+      prevImage(); // Swiped Right -> show prev
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-slate-50 pb-24">
@@ -57,31 +123,110 @@ export default function KitDetailsView({ kit, category, products = [], onBack, o
         {/* Gallery Visual Card */}
         <div className="bg-white rounded-2.5xl p-2.5 shadow-sm border border-slate-100">
           
-          {/* Large Main Image */}
-          <div className="relative h-64 rounded-2xl overflow-hidden bg-slate-100">
+          {/* Large Main Image with Touch Swipe and Overlays */}
+          <div 
+            className="relative h-64 rounded-2xl overflow-hidden bg-slate-150 group select-none cursor-grab active:cursor-grabbing"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <img
-              src={activeImage}
-              alt={kit.name}
-              className="w-full h-full object-cover transition-all duration-300"
+              src={activeItem?.url}
+              alt={activeItem?.title}
+              className="w-full h-full object-cover transition-all duration-300 transform"
               referrerPolicy="no-referrer"
             />
             
             {/* Dark gradient blur at bottom */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+
+            {/* Top Info Badge Overlay depending on item type */}
+            {activeItem?.type === 'product' ? (
+              <span className="absolute top-3 left-3 bg-[#0D47FF] text-white text-[10px] font-extrabold uppercase px-2.5 py-1.5 rounded-lg tracking-wider border border-blue-500/20 shadow-md flex items-center gap-1.5 backdrop-blur-md">
+                <ShoppingBag className="w-3.5 h-3.5 text-white" />
+                <span>{activeItem.quantity && activeItem.quantity > 1 ? `${activeItem.title} (x${activeItem.quantity})` : activeItem.title}</span>
+              </span>
+            ) : (
+              <span className="absolute top-3 left-3 bg-slate-950/75 text-white text-[10px] font-extrabold uppercase px-2.5 py-1.5 rounded-lg tracking-wider border border-white/10 shadow-md backdrop-blur-md">
+                Aperçu Général du Kit
+              </span>
+            )}
+
+            {/* Slider Navigation Arrows (visible on hover/touches) */}
+            {galleryItems.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-opacity"
+                  title="Image précédente"
+                  type="button"
+                >
+                  <ChevronLeft className="w-5 h-5 text-white" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-opacity"
+                  title="Image suivante"
+                  type="button"
+                >
+                  <ChevronRight className="w-5 h-5 text-white" />
+                </button>
+              </>
+            )}
+
+            {/* Pagination Bullet Indicators inside Large Image bottom */}
+            {galleryItems.length > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                {galleryItems.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); setActiveImageIdx(i); }}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      safeActiveIdx === i ? 'bg-white w-4' : 'bg-white/40'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Text details for Product on bottom overlay */}
+            {activeItem?.type === 'product' && (
+              <div className="absolute bottom-4 left-4 right-4 text-white">
+                <p className="text-[9px] text-slate-300 font-bold uppercase tracking-widest font-mono">Contenu inclus dans le kit</p>
+                <p className="text-xs font-extrabold mt-0.5 truncate drop-shadow-sm">{activeItem.title}</p>
+                {activeItem.quantity && activeItem.quantity > 1 && (
+                  <span className="inline-block mt-1 bg-amber-500 text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    Quantité incluse : {activeItem.quantity}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Thumbnails list if there are multiple images */}
-          {kitImages.length > 1 && (
-            <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-              {kitImages.map((img, idx) => (
+          {/* Integrated Thumbnails list including both general kit and product images */}
+          {galleryItems.length > 1 && (
+            <div className="flex gap-2 mt-3 overflow-x-auto pb-1.5 scrollbar-thin">
+              {galleryItems.map((item, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImageIdx(idx)}
-                  className={`w-14 h-14 rounded-xl overflow-hidden border shrink-0 transition-all cursor-pointer ${
-                    activeImageIdx === idx ? 'ring-2 ring-[#0D47FF] border-transparent scale-95' : 'border-slate-200 opacity-60'
+                  className={`relative w-14 h-14 rounded-xl overflow-hidden border shrink-0 transition-all cursor-pointer ${
+                    safeActiveIdx === idx ? 'ring-2 ring-[#0D47FF] border-transparent scale-95 shadow-sm' : 'border-slate-200 opacity-65 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt={`Miniature ${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  <img src={item.url} alt={`Miniature ${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  
+                  {/* Subtle indicators for products thumbnails */}
+                  {item.type === 'product' && (
+                    <span className="absolute bottom-0.5 right-0.5 bg-[#0D47FF] text-white text-[8px] font-mono font-black px-1 rounded shadow-sm border border-blue-400/20 leading-none py-0.5">
+                      x{item.quantity || 1}
+                    </span>
+                  )}
+                  {item.type === 'product' && (
+                    <span className="absolute top-0.5 left-0.5 bg-amber-500 text-white p-0.5 rounded-full shadow-sm">
+                      <ShoppingBag className="w-2 h-2 text-slate-950" />
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
