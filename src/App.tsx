@@ -11,7 +11,7 @@ import { fallbackCategories, fallbackKits, fallbackSettings, fallbackProducts } 
 
 // Firebase & Firestore setup
 import { 
-  collection, getDocs, getDoc, setDoc, doc, deleteDoc, writeBatch, query, orderBy 
+  collection, getDocs, getDoc, setDoc, doc, deleteDoc, writeBatch, query, orderBy, onSnapshot 
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './firebase';
 
@@ -207,7 +207,70 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchData();
+    let unsubSettings: () => void = () => {};
+    let unsubCategories: () => void = () => {};
+    let unsubKits: () => void = () => {};
+    let unsubProducts: () => void = () => {};
+
+    const initRealtimeSync = async () => {
+      // Fetch initially and seed if necessary
+      await fetchData();
+
+      try {
+        // Site Settings real-time subscriber
+        unsubSettings = onSnapshot(doc(db, 'settings', 'site_config'), (snapshot) => {
+          if (snapshot.exists()) {
+            setSettings({ ...fallbackSettings, ...snapshot.data() } as SiteSettings);
+          }
+        });
+
+        // Categories real-time subscriber
+        unsubCategories = onSnapshot(query(collection(db, 'categories'), orderBy('order', 'asc')), (snapshot) => {
+          const cats: Category[] = [];
+          snapshot.forEach((docSnap) => {
+            cats.push({ id: docSnap.id, ...docSnap.data() } as Category);
+          });
+          if (cats.length > 0) {
+            cats.sort((a, b) => (a.order || 0) - (b.order || 0));
+            setCategories(cats);
+          }
+        });
+
+        // Kits real-time subscriber
+        unsubKits = onSnapshot(query(collection(db, 'kits'), orderBy('order', 'asc')), (snapshot) => {
+          const kts: Kit[] = [];
+          snapshot.forEach((docSnap) => {
+            kts.push({ id: docSnap.id, ...docSnap.data() } as Kit);
+          });
+          if (kts.length > 0) {
+            kts.sort((a, b) => (a.order || 0) - (b.order || 0));
+            setKits(kts);
+          }
+        });
+
+        // Products real-time subscriber
+        unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
+          const prods: CatalogProduct[] = [];
+          snapshot.forEach((docSnap) => {
+            prods.push({ id: docSnap.id, ...docSnap.data() } as CatalogProduct);
+          });
+          if (prods.length > 0) {
+            setProducts(prods);
+          }
+        });
+      } catch (err) {
+        console.warn("Erreur lors de l'enregistrement des écouteurs temps réel :", err);
+      }
+    };
+
+    initRealtimeSync();
+
+    return () => {
+      unsubSettings();
+      unsubCategories();
+      unsubKits();
+      unsubProducts();
+    };
   }, []);
 
   // Dynamically update browser tab Title and Favicon based on site configuration
