@@ -878,6 +878,7 @@ export default function App() {
                   kits={kits}
                   onBack={handleBack}
                   whatsappNumber={activeWhatsApp}
+                  products={products}
                 />
               )}
 

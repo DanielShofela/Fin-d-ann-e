@@ -40,17 +40,59 @@ import {
   LogOut,
   ChevronRight,
   ShieldAlert,
-  Smartphone
+  Smartphone,
+  ShoppingBag
 } from 'lucide-react';
-import { Kit, Client, Paiement } from '../types';
+import { Kit, Client, Paiement, CatalogProduct } from '../types';
+
+const getProductEmoji = (fullName: string) => {
+  const name = (fullName || '').toLowerCase();
+  if (name.includes('riz')) return '🍚';
+  if (name.includes('huile')) return '🛢️';
+  if (name.includes('spaghetti') || name.includes('pâte')) return '🍝';
+  if (name.includes('tomate')) return '🥫';
+  if (name.includes('sucre')) return '🍬';
+  if (name.includes('lait')) return '🥛';
+  if (name.includes('mixeur') || name.includes('blendeur') || name.includes('robot')) return '🔌';
+  if (name.includes('bouilloire')) return '🫖';
+  if (name.includes('cuiseur')) return '🍚⚡';
+  if (name.includes('jus')) return '🧃';
+  if (name.includes('sardines') || name.includes('thon') || name.includes('poisson')) return '🐟';
+  if (name.includes('savon')) return '🧼';
+  if (name.includes('café') || name.includes('thé')) return '☕';
+  if (name.includes('table') || name.includes('assiette') || name.includes('vaisselle')) return '🍽️';
+  if (name.includes('gaz')) return '🔥';
+  if (name.includes('congelateur') || name.includes('refrigerateur')) return '❄️';
+  if (name.includes('poulet') || name.includes('viande')) return '🍗';
+  return '📦';
+};
+
+const getCategoryBadgeClass = (categoryId: string) => {
+  const cat = (categoryId || '').toLowerCase();
+  if (cat.includes('bronze')) return 'bg-amber-50 text-amber-900 border-amber-200/50';
+  if (cat.includes('argent')) return 'bg-slate-50 text-slate-900 border-slate-200/50';
+  if (cat.includes('or')) return 'bg-yellow-50 text-yellow-900 border-yellow-200/50';
+  if (cat.includes('platine')) return 'bg-violet-50 text-violet-900 border-violet-200/50';
+  return 'bg-blue-50 text-blue-900 border-blue-200/50';
+};
+
+const getCategoryLabel = (categoryId: string) => {
+  const cat = (categoryId || '').toLowerCase();
+  if (cat.includes('bronze')) return 'Gamme Bronze';
+  if (cat.includes('argent')) return 'Gamme Argent';
+  if (cat.includes('or')) return 'Gamme Or';
+  if (cat.includes('platine')) return 'Gamme Platine';
+  return 'Kit Spécial';
+};
 
 interface PaymentDashboardProps {
   kits: Kit[];
   onBack: () => void;
   whatsappNumber?: string;
+  products?: CatalogProduct[];
 }
 
-export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250703397921' }: PaymentDashboardProps) {
+export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250703397921', products = [] }: PaymentDashboardProps) {
   // Authentication & Session
   const [localClientId, setLocalClientId] = useState<string | null>(() => {
     return localStorage.getItem('saved_client_profile_uid') || null;
@@ -506,23 +548,152 @@ export default function PaymentDashboard({ kits, onBack, whatsappNumber = '+2250
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Sélectionner votre Kit 2026
+                  <div className="space-y-2 mt-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
+                      Sélectionnez votre Kit 2026 (Cliquez sur une image)
                     </label>
-                    <select
-                      required
-                      value={selectedKitId}
-                      onChange={(e) => setSelectedKitId(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-medium focus:ring-1 focus:ring-blue-500 focus:bg-white focus:outline-none transition-all cursor-pointer"
-                    >
-                      <option value="">-- Choisissez votre Kit --</option>
-                      {kits.map(k => (
-                        <option key={k.id} value={k.id}>
-                          {k.name} ({k.totalValue})
-                        </option>
-                      ))}
-                    </select>
+                    
+                    <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                      {kits.map(k => {
+                        const isSelected = selectedKitId === k.id;
+                        return (
+                          <div
+                            key={k.id}
+                            type="button"
+                            onClick={() => setSelectedKitId(k.id)}
+                            className={`p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 flex flex-col gap-2 relative ${
+                              isSelected
+                                ? 'border-[#0D47FF] bg-[#0D47FF]/5 ring-1.5 ring-[#0D47FF]/35'
+                                : 'border-slate-200 bg-white hover:border-slate-350 hover:bg-slate-50/50'
+                            }`}
+                          >
+                            {/* Selected Check overlay badge */}
+                            <div className="absolute top-2.5 right-2.5 z-10">
+                              {isSelected ? (
+                                <div className="w-5 h-5 rounded-full bg-[#0D47FF] text-white flex items-center justify-center shadow-md">
+                                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                </div>
+                              ) : (
+                                <div className="w-5 h-5 rounded-full border border-slate-300 bg-white flex items-center justify-center" />
+                              )}
+                            </div>
+
+                            {/* Main core details */}
+                            <div className="flex gap-3 items-start">
+                              {/* Left column: Image of the pack */}
+                              {k.images && k.images.length > 0 ? (
+                                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-50 border border-slate-100">
+                                  <img 
+                                    src={k.images[0]} 
+                                    alt={k.name} 
+                                    referrerPolicy="no-referrer"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-16 h-16 rounded-xl shrink-0 bg-blue-50 border border-blue-100 flex items-center justify-center font-display text-[11px] text-[#0D47FF] font-bold">
+                                  Kit 🎁
+                                </div>
+                              )}
+
+                              {/* Right column: Texts */}
+                              <div className="flex-1 min-w-0 pr-6">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-extrabold uppercase tracking-widest border ${getCategoryBadgeClass(k.categoryId)}`}>
+                                    {getCategoryLabel(k.categoryId)}
+                                  </span>
+                                </div>
+                                <h4 className="font-display font-extrabold text-[11px] text-slate-800 leading-tight">
+                                  {k.name}
+                                </h4>
+                                <div className="flex items-baseline gap-2 mt-1">
+                                  <span className="text-[12px] font-black text-[#0D47FF]">
+                                    {k.totalValue}
+                                  </span>
+                                  {k.dailyAmount && (
+                                    <span className="text-[8px] font-extrabold text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded-sm">
+                                      {k.dailyAmount} / jour
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Beautiful visual composition of components with real images from the database */}
+                            <div className="pt-2 border-t border-slate-100/80">
+                              <p className="text-[9px] font-black uppercase text-slate-500 tracking-wider mb-2 flex items-center gap-1">
+                                <ShoppingBag className="w-3 h-3 text-[#0D47FF]" />
+                                Contenu détaillé du Kit ({k.products.length} articles) :
+                              </p>
+                              
+                              <div className="grid grid-cols-2 gap-2 mt-1">
+                                {(() => {
+                                  // Gather unique products and count mapping
+                                  const counts: { [name: string]: number } = {};
+                                  const uniques: string[] = [];
+                                  (k.products || []).forEach(prodName => {
+                                    if (!prodName) return;
+                                    const trimmed = prodName.trim();
+                                    const existing = uniques.find(u => u.toLowerCase() === trimmed.toLowerCase());
+                                    if (existing) {
+                                      counts[existing]++;
+                                    } else {
+                                      uniques.push(trimmed);
+                                      counts[trimmed] = 1;
+                                    }
+                                  });
+
+                                  return uniques.map((prodName, pIdx) => {
+                                    const matched = (products || []).find(
+                                      cp => cp.name.trim().toLowerCase() === prodName.toLowerCase()
+                                    );
+                                    const count = counts[prodName] || 1;
+                                    const hasImage = matched && matched.image && matched.image.trim();
+
+                                    return (
+                                      <div 
+                                        key={pIdx} 
+                                        className="flex items-center gap-2 bg-slate-50/70 border border-slate-150 p-1.5 rounded-xl text-left relative"
+                                      >
+                                        <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-white border border-slate-200/60 flex items-center justify-center">
+                                          {hasImage ? (
+                                            <img
+                                              src={matched.image}
+                                              alt={prodName}
+                                              referrerPolicy="no-referrer"
+                                              className="w-full h-full object-cover"
+                                            />
+                                          ) : (
+                                            <div className="w-full h-full bg-[#0D47FF]/5 text-[#0D47FF] flex items-center justify-center font-display text-[8px] font-black">
+                                              {prodName.substring(0, 2).toUpperCase()}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          <p className="text-[9px] font-bold text-slate-800 leading-none truncate" title={prodName}>
+                                            {prodName}
+                                          </p>
+                                          {matched?.subcategory && (
+                                            <p className="text-[7.5px] text-slate-400 font-medium truncate mt-0.5 leading-none">
+                                              {matched.subcategory}
+                                            </p>
+                                          )}
+                                        </div>
+                                        {count > 1 && (
+                                          <div className="absolute top-1 right-1 bg-[#0D47FF] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full font-mono scale-90">
+                                            x{count}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  });
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </>
               )}
