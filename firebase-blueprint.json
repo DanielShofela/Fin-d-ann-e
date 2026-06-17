@@ -92,6 +92,37 @@
         "name": { "type": "string" }
       },
       "required": ["id", "category", "name"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Client profile containing info and progressive payment states.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "nom": { "type": "string" },
+        "telephone": { "type": "string" },
+        "produit": { "type": "string" },
+        "prixTotal": { "type": "number" },
+        "montantPaye": { "type": "number" },
+        "resteAPayer": { "type": "number" },
+        "pourcentage": { "type": "number" },
+        "statut": { "type": "string" }
+      },
+      "required": ["uid", "nom", "telephone", "produit", "prixTotal", "montantPaye", "resteAPayer", "pourcentage", "statut"]
+    },
+    "Paiement": {
+      "title": "Paiement",
+      "description": "Log of successful payments made by clients.",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "montant": { "type": "number" },
+        "moyenPaiement": { "type": "string" },
+        "datePaiement": { "type": "string" },
+        "statut": { "type": "string" }
+      },
+      "required": ["clientId", "transactionId", "montant", "moyenPaiement", "datePaiement", "statut"]
     }
   },
   "firestore": {
@@ -110,6 +141,14 @@
     "products": {
       "schema": "CatalogProduct",
       "description": "List of available items/products catalog to select when building kits"
+    },
+    "clients": {
+      "schema": "Client",
+      "description": "Clients with billing and progressive payment indicators"
+    },
+    "paiements": {
+      "schema": "Paiement",
+      "description": "Individual payment logs"
     }
   }
 }

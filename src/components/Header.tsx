@@ -61,6 +61,17 @@ export default function Header({ currentView, onNavigate, onBack, isAdmin, onLog
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
+          {currentView !== 'payment' && (
+            <button
+              id="header_payment_btn"
+              onClick={() => onNavigate('payment')}
+              className="text-[10px] font-black uppercase tracking-wider bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-xs shrink-0"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0D47FF] animate-pulse"></span>
+              <span>Mon Espace Solde</span>
+            </button>
+          )}
+
           {isAdmin && (
             <div className="flex items-center gap-1.5">
               <button

@@ -23,6 +23,7 @@ import CategoryView from './components/CategoryView';
 import KitDetailsView from './components/KitDetailsView';
 import RequestFormModal from './components/RequestFormModal';
 import AdminPanel from './components/AdminPanel';
+import PaymentDashboard from './components/PaymentDashboard';
 import Footer from './components/Footer';
 
 // Helper to prevent database operations from hanging indefinitely
@@ -79,9 +80,56 @@ export default function App() {
   });
 
   // Navigation Routing States
-  const [currentView, setCurrentView] = useState<'homepage' | 'category' | 'kit-details' | 'admin'>('homepage');
-  const [viewHistory, setViewHistory] = useState<Array<{ view: 'homepage' | 'category' | 'kit-details' | 'admin'; activeCategory?: string; activeKit?: string }>>([{ view: 'homepage' }]);
+  const [currentView, setCurrentView] = useState<'homepage' | 'category' | 'kit-details' | 'admin' | 'payment'>('homepage');
+  const [viewHistory, setViewHistory] = useState<Array<{ view: 'homepage' | 'category' | 'kit-details' | 'admin' | 'payment'; activeCategory?: string; activeKit?: string }>>([{ view: 'homepage' }]);
   
+  // PayDunya Redirection Verifier State
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Monitor return checkpoints for PayDunya WebPay redirs
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paydunyaToken = params.get('token');
+    const clientIdContext = params.get('clientId');
+    const symAmountStr = params.get('simAmount');
+
+    if (paydunyaToken) {
+      setVerifyingPayment(true);
+      setCurrentView('payment'); // Auto select the tracker dashboard
+      
+      const queryStr = `token=${paydunyaToken}&clientId=${clientIdContext || ''}&simAmount=${symAmountStr || ''}`;
+      
+      fetch(`/api/paydunya/confirm-payment?${queryStr}`)
+        .then(async (response) => {
+          if (!response.ok) {
+            const errBody = await response.json().catch(() => ({}));
+            throw new Error(errBody.error || "Paiement non encore validé par le fournisseur.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          setVerificationResult({
+            success: true,
+            message: data.message || "Félicitations ! Votre versement a été validé et crédité en temps réel sur Firestore."
+          });
+          // Clean parameters
+          const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+          window.history.replaceState({ path: baseUrl }, '', baseUrl);
+        })
+        .catch((e: any) => {
+          console.error("Redirection validation failure:", e);
+          setVerificationResult({
+            success: false,
+            message: e.message || "Le paiement n'a pas pu être validé de manière automatique."
+          });
+        })
+        .finally(() => {
+          setVerifyingPayment(false);
+        });
+    }
+  }, []);
+
   // Specific Resource Targets
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [activeKitId, setActiveKitId] = useState<string | null>(null);
@@ -309,7 +357,7 @@ export default function App() {
   }, [settings]);
 
   // Safe Navigation Stack Helpers
-  const handleNavigate = (view: 'homepage' | 'category' | 'kit-details' | 'admin', categoryId?: string, kitId?: string) => {
+  const handleNavigate = (view: 'homepage' | 'category' | 'kit-details' | 'admin' | 'payment', categoryId?: string, kitId?: string) => {
     if (categoryId) setActiveCategoryId(categoryId);
     if (kitId) setActiveKitId(kitId);
 
@@ -824,11 +872,65 @@ export default function App() {
                 />
               )}
 
+              {/* VIEW 5: HOURLY PROGRESSIVE PAYMENT WORKSPACE */}
+              {currentView === 'payment' && (
+                <PaymentDashboard
+                  kits={kits}
+                  onBack={handleBack}
+                  whatsappNumber={activeWhatsApp}
+                />
+              )}
+
             </div>
           )}
 
         </AnimatePresence>
       </main>
+
+      {/* PayDunya Verification Overlay Modals */}
+      {(verifyingPayment || verificationResult) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-xl border border-slate-100 animate-in fade-in-50 zoom-in-95 duration-200">
+            {verifyingPayment ? (
+              <div className="py-6 space-y-4 animate-pulse">
+                <div className="w-10 h-10 rounded-full border-4 border-slate-100 border-t-[#0D47FF] animate-spin mx-auto" />
+                <div className="space-y-1">
+                  <h3 className="font-display font-black text-xs uppercase tracking-wide text-slate-800">
+                    Vérification du paiement...
+                  </h3>
+                  <p className="text-[10px] text-slate-400">
+                    Détection de votre reçu et mise à niveau de votre cagnotte progressive en cours.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-500">
+                  {verificationResult?.success ? (
+                    <span className="text-2xl">🎉</span>
+                  ) : (
+                    <span className="text-2xl">⚠️</span>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <h3 className="font-display font-black text-xs uppercase tracking-wider text-slate-800">
+                    {verificationResult?.success ? "Versement Validé !" : "Échec de validation"}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    {verificationResult?.message}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setVerificationResult(null)}
+                  className="w-full py-3 bg-[#0D47FF] hover:bg-blue-700 text-white font-medium text-xs rounded-xl transition-all cursor-pointer block text-center"
+                >
+                  Fermer & Consulter ma cagnotte
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Corporate information Footer */}
       <Footer 

@@ -109,6 +109,43 @@ ${compositionText || "- (Aucun produit spécifié)"}
     }
 
     message += `\n\nMerci de me contacter pour finaliser ma souscription.`;
+    
+    // Automatically register client profile in Firestore in the background
+    const registerClientAutomatically = async () => {
+      try {
+        const rawTotal = kit.totalValue;
+        const cleanTotal = parseInt(rawTotal.replace(/[^0-9]/g, ''), 10) || 45000;
+
+        const response = await fetch('/api/clients/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            nom: formData.name.trim(),
+            telephone: formData.phone.trim(),
+            whatsapp: formData.whatsapp.trim(),
+            produit: kit.name,
+            prixTotal: cleanTotal,
+            ville: formData.city,
+            commune: formData.commune,
+            adresse: formData.address
+          })
+        });
+
+        if (response.ok) {
+          const resData = await response.json();
+          console.log("Auto-registration successful:", resData);
+          // Set in localstorage so they are logged in automatically!
+          localStorage.setItem('saved_client_profile_name', formData.name.trim());
+        }
+      } catch (err) {
+        console.error("Failed to auto-register client profile:", err);
+      }
+    };
+
+    // Execute background registration immediately
+    registerClientAutomatically();
 
     // Encode text for HTTP URL
     const encodedMessage = encodeURIComponent(message);

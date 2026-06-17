@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { 
   Plus, Edit, Trash2, ArrowUp, ArrowDown, Save, X, Lock, 
   Settings, CheckCircle, RefreshCcw, Tag, ShoppingBag, Eye,
-  Image as ImageIcon, HelpCircle, Layers, ClipboardList, Info, Star
+  Image as ImageIcon, HelpCircle, Layers, ClipboardList, Info, Star,
+  CreditCard, Search, FileDown, TrendingUp
 } from 'lucide-react';
 import { Category, Kit, SiteSettings, CatalogProduct } from '../types';
 
@@ -62,7 +65,54 @@ export default function AdminPanel({
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'categories' | 'kits' | 'settings' | 'products'>('categories');
+  const [activeTab, setActiveTab] = useState<'categories' | 'kits' | 'settings' | 'products' | 'payments'>('categories');
+
+  // Progressive Payment Admin States
+  const [adminClients, setAdminClients] = useState<any[]>([]);
+  const [adminPayments, setAdminPayments] = useState<any[]>([]);
+  const [isPaymentsLoading, setIsPaymentsLoading] = useState(false);
+  const [paymentSearch, setPaymentSearch] = useState('');
+  const [paymentKitFilter, setPaymentKitFilter] = useState('all');
+
+  // Real-time listen to Clients & Payments logs when tab is active
+  useEffect(() => {
+    if (activeTab !== 'payments' || !token) return;
+
+    setIsPaymentsLoading(true);
+
+    // 1. Snapshot listeners for clients List
+    const unsubClients = onSnapshot(collection(db, 'clients'), (snapshot) => {
+      const cls: any[] = [];
+      snapshot.forEach(docSnap => {
+        cls.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      // Sort in order of creation or alphabetically
+      cls.sort((a,b) => (a.nom || '').localeCompare(b.nom || ''));
+      setAdminClients(cls);
+      setIsPaymentsLoading(false);
+    }, (err) => {
+      console.error("Admin snapshot clients load error:", err);
+      setIsPaymentsLoading(false);
+    });
+
+    // 2. Snapshot listener for payments Ledger log
+    const unsubPayments = onSnapshot(collection(db, 'paiements'), (snapshot) => {
+      const pms: any[] = [];
+      snapshot.forEach(docSnap => {
+        pms.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      // Sort by date descending
+      pms.sort((a, b) => new Date(b.datePaiement).getTime() - new Date(a.datePaiement).getTime());
+      setAdminPayments(pms);
+    }, (err) => {
+      console.error("Admin snapshot payments load error:", err);
+    });
+
+    return () => {
+      unsubClients();
+      unsubPayments();
+    };
+  }, [activeTab, token]);
 
   // Selected Category filter for Kits list
   const [selectedCatFilter, setSelectedCatFilter] = useState<string>('all');
@@ -711,57 +761,70 @@ export default function AdminPanel({
 
       {/* Navigation Tabs */}
       <div className="max-w-md mx-auto px-4 mt-6">
-        <div className="bg-white p-1 rounded-2xl border border-slate-100 shadow-sm grid grid-cols-2 gap-1.5">
+        <div className="bg-white p-1 rounded-2xl border border-slate-100 shadow-sm grid grid-cols-2 sm:grid-cols-3 gap-1.5">
           <button
             id="tab_categories_btn"
             onClick={() => setActiveTab('categories')}
-            className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`py-2.5 px-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase ${
               activeTab === 'categories' 
                 ? 'bg-[#0D47FF] text-white shadow-md' 
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span className="truncate">Gérer Catégories ({categories.length})</span>
+            <span className="truncate">Catégories ({categories.length})</span>
           </button>
           
           <button
             id="tab_kits_btn"
             onClick={() => setActiveTab('kits')}
-            className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`py-2.5 px-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase ${
               activeTab === 'kits' 
                 ? 'bg-[#0D47FF] text-white shadow-md' 
                 : 'text-slate-680 hover:bg-slate-50'
             }`}
           >
             <ClipboardList className="w-3.5 h-3.5" />
-            <span className="truncate">Gérer Kits ({kits.length})</span>
+            <span className="truncate">Kits ({kits.length})</span>
           </button>
 
           <button
             id="tab_products_btn"
             onClick={() => setActiveTab('products')}
-            className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`py-2.5 px-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase ${
               activeTab === 'products' 
                 ? 'bg-[#0D47FF] text-white shadow-md' 
                 : 'text-slate-680 hover:bg-slate-50'
             }`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
-            <span className="truncate">Catalogue ({products.length})</span>
+            <span className="truncate">Produits ({products.length})</span>
           </button>
 
           <button
             id="tab_settings_btn"
             onClick={() => setActiveTab('settings')}
-            className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`py-2.5 px-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase ${
               activeTab === 'settings' 
                 ? 'bg-[#0D47FF] text-white shadow-md' 
                 : 'text-slate-680 hover:bg-slate-50'
             }`}
           >
             <Settings className="w-3.5 h-3.5" />
-            <span className="truncate">Personnaliser</span>
+            <span className="truncate">Contenus</span>
+          </button>
+
+          <button
+            id="tab_payments_btn"
+            onClick={() => setActiveTab('payments')}
+            className={`py-2.5 px-3 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer col-span-2 sm:col-span-1 uppercase ${
+              activeTab === 'payments' 
+                ? 'bg-amber-500 text-white shadow-md' 
+                : 'text-slate-680 hover:bg-slate-50'
+            }`}
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            <span className="truncate">Versements</span>
           </button>
         </div>
       </div>
@@ -1708,6 +1771,224 @@ export default function AdminPanel({
                     </div>
                   </div>
                 ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: PROGRESSIVE PAYMENTS MONITOR & CRM */}
+        {activeTab === 'payments' && (
+          <div className="space-y-5 animate-fade-in pb-10">
+            {/* Header statistics banner */}
+            <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+              <div>
+                <h2 className="font-display font-black text-xs text-slate-800 uppercase tracking-wide">
+                  Suivi des Cagnottes Progressives
+                </h2>
+                <p className="text-[11px] text-slate-500 normal-case font-medium mt-0.5">
+                  Supervisez les clients, leurs versements d'épargne progressive et les statistiques de recouvrement en temps réel.
+                </p>
+              </div>
+
+              {/* CRM Key Performance Indicators */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-3.5 bg-sky-50 rounded-2xl border border-sky-100">
+                  <span className="text-[10px] text-sky-600 font-bold uppercase tracking-wider block">Total Recouvré</span>
+                  <span className="font-mono text-base font-extrabold text-[#0D47FF]">
+                    {adminClients.reduce((sum, c) => sum + (Number(c.montantPaye) || 0), 0).toLocaleString()} FCFA
+                  </span>
+                </div>
+                <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-100">
+                  <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wider block">Reste à Recouvrer</span>
+                  <span className="font-mono text-base font-extrabold text-amber-600">
+                    {adminClients.reduce((sum, c) => sum + (Number(c.resteAPayer) || 0), 0).toLocaleString()} FCFA
+                  </span>
+                </div>
+                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Abonnés Actifs</span>
+                  <span className="font-display text-base font-extrabold text-slate-800">
+                    {adminClients.length} clients
+                  </span>
+                </div>
+                <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-100">
+                  <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider block">Paiements Validés</span>
+                  <span className="font-display text-base font-extrabold text-emerald-600">
+                    {adminPayments.length} transactions
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter and Download controls */}
+            <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm space-y-3">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher par nom ou téléphone..."
+                    value={paymentSearch}
+                    onChange={(e) => setPaymentSearch(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs font-semibold text-slate-800 normal-case focus:outline-none placeholder:text-slate-400"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    const headers = "Nom complet,Numéro téléphone,Kit choisi,Montant payé (FCFA),Reste à payer (FCFA),Progression,Statut\n";
+                    const rows = adminClients.map(c => 
+                      `"${c.nom || ''}","${c.telephone || ''}","${c.produit || ''}",${c.montantPaye || 0},${c.resteAPayer || 0},"${c.pourcentage || 0}%","${c.statut || 'En cours'}"`
+                    ).join("\n");
+                    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent(headers + rows);
+                    const docLink = document.createElement("a");
+                    docLink.setAttribute("href", csvContent);
+                    docLink.setAttribute("download", `Clients_Kit2026_Versements_${new Date().toLocaleDateString('fr-FR')}.csv`);
+                    document.body.appendChild(docLink);
+                    docLink.click();
+                    document.body.removeChild(docLink);
+                    showStatus("Exportation CSV téléchargée !");
+                  }}
+                  className="bg-[#0D47FF] hover:bg-blue-700 text-white p-2.5 rounded-xl cursor-pointer shadow-xs shrink-0 duration-200 flex items-center justify-center"
+                  title="Exporter au format CSV"
+                >
+                  <FileDown className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Filter option */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-400 uppercase font-black shrink-0">Filtrer Kit:</span>
+                <select
+                  value={paymentKitFilter}
+                  onChange={(e) => setPaymentKitFilter(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-lg text-[10px] px-2 py-1 flex-1 font-bold text-slate-700 outline-none cursor-pointer"
+                >
+                  <option value="all">Tous les kits souscrits</option>
+                  {kits.map(k => (
+                    <option key={k.id} value={k.name}>{k.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Clients progression List */}
+            <div className="space-y-2.5">
+              <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-500 pl-1">
+                Fiches Clients Co-épargnants
+              </h3>
+
+              {isPaymentsLoading ? (
+                <div className="bg-white p-8 text-center rounded-3xl border text-slate-400">
+                  <div className="w-6 h-6 border-2 border-slate-200 border-t-amber-500 rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-[11px] font-medium font-display uppercase tracking-widest leading-none mt-2">Chargement en cours...</p>
+                </div>
+              ) : adminClients.filter(c => {
+                const queryMatch = (c.nom || '').toLowerCase().includes(paymentSearch.toLowerCase()) || 
+                                   (c.telephone || '').includes(paymentSearch);
+                const kitMatch = paymentKitFilter === 'all' || c.produit === paymentKitFilter;
+                return queryMatch && kitMatch;
+              }).length === 0 ? (
+                <div className="bg-white p-6 text-center text-slate-400 rounded-3xl border border-slate-100 shadow-xs">
+                  <CreditCard className="w-7 h-7 text-slate-300 mx-auto stroke-[1.5] mb-2" />
+                  <p className="text-[11px] font-bold uppercase tracking-wider">Aucun souscripteur enregistré</p>
+                  <p className="text-[9px] text-slate-400 normal-case mt-0.5">Le client doit d'abord configurer son carnet depuis son espace solde.</p>
+                </div>
+              ) : (
+                adminClients.filter(c => {
+                  const queryMatch = (c.nom || '').toLowerCase().includes(paymentSearch.toLowerCase()) || 
+                                     (c.telephone || '').includes(paymentSearch);
+                  const kitMatch = paymentKitFilter === 'all' || c.produit === paymentKitFilter;
+                  return queryMatch && kitMatch;
+                }).map((client) => {
+                  const percentage = client.pourcentage || 0;
+                  return (
+                    <div 
+                      key={client.id}
+                      className="bg-white p-4 rounded-3xl border border-slate-100 shadow-xs hover:border-slate-300 transition-all text-left"
+                    >
+                      <div className="flex items-start justify-between gap-1.5 mb-2">
+                        <div>
+                          <h4 className="font-display font-black text-xs text-slate-900 leading-none">
+                            {client.nom}
+                          </h4>
+                          <span className="font-mono text-[10px] font-bold text-slate-500 mt-1 block">
+                            📞 {client.telephone}
+                          </span>
+                        </div>
+                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          percentage >= 100 
+                            ? 'bg-emerald-50 text-emerald-600' 
+                            : 'bg-amber-50 text-amber-600'
+                        }`}>
+                          {percentage >= 100 ? 'Complété' : `${percentage}% Épargné`}
+                        </span>
+                      </div>
+
+                      {/* Kit sub text */}
+                      <div className="text-[10px] text-slate-600 font-bold mb-2 p-1.5 rounded-lg bg-slate-50 border border-dashed text-center">
+                        📦 {client.produit}
+                      </div>
+
+                      {/* Progression indicators and progress bar */}
+                      <div className="space-y-1.5">
+                        <div className="w-full bg-slate-150 h-2 rounded-full overflow-hidden">
+                          <div 
+                            className="bg-gradient-to-r from-blue-500 to-amber-500 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(percentage, 100)}%` }}
+                          />
+                        </div>
+
+                        <div className="flex justify-between items-center text-[10px]">
+                          <div>
+                            <span className="text-slate-400">Payé: </span>
+                            <span className="font-mono font-extrabold text-[#0D47FF]">{Number(client.montantPaye || 0).toLocaleString()} FCFA</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400">Reste: </span>
+                            <span className="font-mono font-extrabold text-slate-700">{Number(client.resteAPayer || 0).toLocaleString()} FCFA</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* General historical payments ledger */}
+            <div className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm space-y-3.5 text-left">
+              <div>
+                <h3 className="font-display font-black text-xs text-slate-800 uppercase tracking-wide flex items-center gap-1">
+                  <span>📊</span>
+                  <span>Journal des Versements Reçus</span>
+                </h3>
+                <p className="text-[10px] text-slate-405 mt-0.5 font-medium normal-case">
+                  Vérifiez ici l'intégralité des transactions provenant directement de la passerelle PayDunya.
+                </p>
+              </div>
+
+              {adminPayments.length === 0 ? (
+                <div className="p-4 text-center text-slate-400 text-[10px]">
+                  Aucune transaction récente enregistrée sur le système.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  {adminPayments.map((pay, i) => (
+                    <div key={i} className="p-2.5 bg-slate-50 hover:bg-slate-100 duration-200 border rounded-2xl flex items-center justify-between text-[10px]">
+                      <div>
+                        <span className="font-bold text-slate-700 block">{pay.clientTelephone}</span>
+                        <span className="text-[9px] text-slate-400 block font-medium">
+                          {new Date(pay.datePaiement).toLocaleString('fr-FR')}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-black text-xs text-emerald-600 block">+{pay.montant.toLocaleString()} FCFA</span>
+                        <span className="text-[8px] bg-white border px-1.5 py-0.2 ml-auto shadow-xs select-none rounded text-slate-500 uppercase font-bold mt-0.5 inline-block">
+                          {pay.moyenPaiement || 'PayDunya'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>

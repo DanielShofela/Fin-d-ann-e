@@ -77,3 +77,26 @@ export interface CatalogProduct {
   image?: string;
 }
 
+export interface Client {
+  uid: string;
+  nom: string;
+  telephone: string;
+  produit: string;
+  prixTotal: number;
+  montantPaye: number;
+  resteAPayer: number;
+  pourcentage: number;
+  statut: 'en_cours' | 'termine';
+  createdAt?: string;
+}
+
+export interface Paiement {
+  id?: string;
+  clientId: string;
+  transactionId: string;
+  montant: number;
+  moyenPaiement: string;
+  datePaiement: string;
+  statut: string;
+}
+
